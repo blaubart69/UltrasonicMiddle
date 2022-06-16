@@ -14,9 +14,9 @@ export class SensorService {
 
   	constructor() { 
 
-		var url = new URL('', window.location.href);
+		var url = new URL('/ws', window.location.href);
 		url.protocol = url.protocol.replace('http', 'ws');
-		url.port = '8080';
+		console.log("WS connecting to: " + url.href);
 
 		this.sensorValue$ = 
 			webSocket(url.href)

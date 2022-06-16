@@ -1,0 +1,1 @@
+ng build -c production --output-hashing none --output-path ../mc/data

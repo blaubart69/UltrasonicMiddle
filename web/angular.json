@@ -103,5 +103,8 @@
       }
     }
   },
-  "defaultProject": "sensorWeb"
+  "defaultProject": "sensorWeb",
+  "cli": {
+    "analytics": false
+  }
 }
