@@ -40,6 +40,8 @@ void setup_webserver(void) {
   server.begin();
 
   server.serveStatic("/",         LittleFS, "/").setDefaultFile("index.html");
+  server.serveStatic("/log",      LittleFS, "/").setDefaultFile("index.html");
+  server.serveStatic("/settings", LittleFS, "/").setDefaultFile("index.html");
   //server.serveStatic("/css/",     LittleFS, "/css/");
   //server.serveStatic("/fonts/",   LittleFS, "/fonts/");
   //server.serveStatic("/scripts/", LittleFS, "/scripts/");
@@ -175,10 +177,18 @@ void ser2OnError(hardwareSerial_error_t err) {
 }
 
 void setup_sensors(void) {
-  Serial1.onReceive     (ser1OnReceive);
-  Serial1.onReceiveError(ser1OnError);
-  Serial2.onReceive     (ser2OnReceive);
-  Serial2.onReceiveError(ser2OnError);
+  //Serial1.onReceive     (ser1OnReceive);
+  //Serial1.onReceiveError(ser1OnError);
+  //Serial2.onReceive     (ser2OnReceive);
+  //Serial2.onReceiveError(ser2OnError);
+
+  Serial1.onReceive( []() { serialOnReceive(&Serial1, 0, &(g_stats[0])); } );
+  Serial2.onReceive( []() { serialOnReceive(&Serial2, 1, &(g_stats[1])); } );
+
+  Serial1.onReceiveError( [](hardwareSerial_error_t err) { Serial.printf("E: #0 - %s\n", getSerialErrMsg(err)); } );
+  Serial1.onReceiveError( [](hardwareSerial_error_t err) { Serial.printf("E: #1 - %s\n", getSerialErrMsg(err)); } );
+
+
 }
 
 typedef void (pf_every_ms)(void);
