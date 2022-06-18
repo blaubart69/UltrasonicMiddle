@@ -26,7 +26,7 @@ export class LogComponent implements OnInit {
     this.sensorValues$ = this.sensorService.sensorValues$
     .pipe(
       scan( 
-        (values,value) => [value].concat(values.slice(0,9))
+        (values,value) => [value].concat(values.slice(0,19))
         , new Array<SensorEntry>() 
       )
     )

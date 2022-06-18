@@ -6,6 +6,8 @@
 #include <ESPmDNS.h>
 #include <LittleFS.h>
 
+#include "RingBuffer.h"
+
 AsyncWebServer server(80);
 AsyncWebSocket ws("/ws");
 
@@ -119,10 +121,15 @@ bool read_millimeter_from_serial(Stream* serial, STATS* stats, unsigned int* mil
 }
 
 bool          pair_has_value[2] = {false, false};
-unsigned int  pair[2];
+
+ValuePair   pair;
+ValuePair   sum_pair;
+RingBuffer  ring_buf;
 
 void serialOnReceive(Stream* serial, const int sensor, STATS* stats) {
+  static char jsonReply[32];
   unsigned int millimeter;
+
   if (!read_millimeter_from_serial(serial, stats, &millimeter)) {
     // 
   }
@@ -131,17 +138,25 @@ void serialOnReceive(Stream* serial, const int sensor, STATS* stats) {
       stats->overwrite += 1;
     }
 
-    pair[sensor]           = millimeter;
+    pair.val[sensor]       = millimeter;
     pair_has_value[sensor] = true;
 
     if ( pair_has_value[1-sensor] ) {
 
-      static char jsonReply[32];
-      sprintf(jsonReply, "{\"l\":%u,\"r\":%u}", pair[0], pair[1]);
+      ring_buf.push(pair);
+
+      const int avg_range = 10;
+      int summed = ring_buf.sum_last_values(avg_range, &sum_pair);
+      if ( summed < (avg_range/2) ) {
+        sum_pair.reset();
+      }
+      
+      sprintf(jsonReply, "{\"l\":%u,\"r\":%u}"
+        , sum_pair.val[0] / avg_range
+        , sum_pair.val[1] / avg_range);
+
       ws.textAll(jsonReply);
       
-      //Serial.printf("%s\n", jsonReply);
-
       pair_has_value[0] = false;
       pair_has_value[1] = false;
     }
