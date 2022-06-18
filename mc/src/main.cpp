@@ -67,6 +67,7 @@ typedef struct {
 	unsigned long ne;
 	unsigned long notFF;
   unsigned long overwrite;
+  unsigned long loops;
 } STATS;
 
 STATS g_stats[2];
@@ -74,14 +75,15 @@ STATS g_last_stats[2];
 
 void print_stats(const STATS stats[], const STATS last_stats[]) {
 
-	Serial.printf("[avail0: %5lu|%5lu] [ok: %2lu|%2lu] [err: %2lu|%2lu] [less4: %5lu|%5lu] [ne: %5lu|%5lu] [notFF: %5lu|%5lu] [overwrite: %2lu|%2lu]\n",
+	Serial.printf("[avail0: %5lu|%5lu] [ok: %2lu|%2lu] [err: %2lu|%2lu] [less4: %5lu|%5lu] [ne: %5lu|%5lu] [notFF: %5lu|%5lu] [overwrite: %2lu|%2lu] [loops: %5lu]\n",
 		stats[0].avail0      - last_stats[0].avail0,        stats[1].avail0      - last_stats[1].avail0,
 		stats[0].data_ok     - last_stats[0].data_ok,       stats[1].data_ok     - last_stats[1].data_ok, 
 		stats[0].data_error  - last_stats[0].data_error,    stats[1].data_error  - last_stats[1].data_error,
 		stats[0].less4       - last_stats[0].less4,         stats[1].less4       - last_stats[1].less4,
 		stats[0].ne          - last_stats[0].ne,            stats[1].ne          - last_stats[1].ne,
 		stats[0].notFF	     - last_stats[0].notFF,         stats[1].notFF	     - last_stats[1].notFF,
-    stats[0].overwrite,                                 stats[1].overwrite
+    stats[0].overwrite,                                 stats[1].overwrite,
+    stats[0].loops       - last_stats[0].loops
   );
 }
 
@@ -242,14 +244,6 @@ void loop() {
     } 
   );
 
-  /*
-  const unsigned long currMillis = millis();
-	if ( currMillis - last_millis > 1000) {
-		print_stats(&stats1, &last_stats1, 
-                &stats2, &last_stats2);	
-		memcpy(&last_stats1, &stats1, sizeof(STATS));
-    memcpy(&last_stats2, &stats2, sizeof(STATS));
-		
-	}
-  */
+  g_stats[0].loops++;
+
 }
