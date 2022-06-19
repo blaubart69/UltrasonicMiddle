@@ -21,6 +21,7 @@ void setup_filesystem(void) {
   }  
 }
 
+/*
 void setup_WiFi(void) {
   WiFi.begin("BabyStube", "PaulaNadja1977");
   Serial.println("Connecting to WiFi");
@@ -31,6 +32,20 @@ void setup_WiFi(void) {
   Serial.printf("IPv6: %s\n", WiFi.enableIpV6() ? "enabled" : "error enabling");
   Serial.println(WiFi.localIP());
   Serial.println(WiFi.localIPv6());
+}
+*/
+void setup_WiFi(void) {
+  // Connect to Wi-Fi network with SSID and password
+  Serial.print("starting Access Point...");
+  // Remove the password parameter, if you want the AP (Access Point) to be open
+  WiFi.softAP("radar", "");
+  
+
+  IPAddress IP = WiFi.softAPIP();
+  Serial.print("AP IP address: ");
+  Serial.println(IP);
+  
+  server.begin();
 }
 
 void setup_webserver(void) {
