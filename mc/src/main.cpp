@@ -7,6 +7,8 @@
 #include <LittleFS.h>
 
 #include "RingBuffer.h"
+#include "stats.h"
+#include "sensor.h"
 
 AsyncWebServer server(80);
 AsyncWebSocket ws("/ws");
@@ -62,7 +64,6 @@ void setup_webserver(void) {
   //server.serveStatic("/css/",     LittleFS, "/css/");
   //server.serveStatic("/fonts/",   LittleFS, "/fonts/");
   //server.serveStatic("/scripts/", LittleFS, "/scripts/");
-
 }
 
 void setup_mDNS(void) {
@@ -73,17 +74,6 @@ void setup_mDNS(void) {
     Serial.println("mDNS responder started");
   }
 }
-
-typedef struct {
-	unsigned long avail0;     
-	unsigned long data_ok;    
-	unsigned long data_error;
-	unsigned long less4;
-	unsigned long ne;
-	unsigned long notFF;
-  unsigned long overwrite;
-  unsigned long loops;
-} STATS;
 
 STATS g_stats[2];
 STATS g_last_stats[2];
@@ -102,83 +92,6 @@ void print_stats(const STATS stats[], const STATS last_stats[]) {
   );
 }
 
-bool checksum_valid_2(unsigned char* data) // == char[4]
-{
-	const int checksum = ( data[0] + data[1] + data[2] ) & 0xFF;
-	return checksum == data[3];
-}
-
-bool read_millimeter_from_serial(Stream* serial, STATS* stats, unsigned int* millimeter) {
-  unsigned char data[4];
-  data[0] = 0xFF;
-
-  for (;;) {
-    int b = serial->read();
-    if ( b == -1) {
-      break;
-    }    
-    else if ( b != 0xFF ) {
-      stats->notFF += 1;
-    }
-    else if ( serial->readBytes(&(data[1]),3) != 3 ) {
-      stats->ne += 1;
-    }
-    else if ( ! checksum_valid_2(data) ) {
-      stats->data_error += 1;
-    }
-    else {
-      stats->data_ok += 1;
-		  *millimeter = ( data[1] << 8 ) + data[2];
-      return true;
-      //sprintf(jsonReply, "{\"l\":%u,\"r\":0}", millimeter);
-      //ws.textAll(jsonReply);
-    }
-  }
-  return false;
-}
-
-bool          pair_has_value[2] = {false, false};
-
-ValuePair   pair;
-ValuePair   sum_pair;
-RingBuffer  ring_buf;
-
-void serialOnReceive(Stream* serial, const int sensor, STATS* stats) {
-  static char jsonReply[32];
-  unsigned int millimeter;
-
-  if (!read_millimeter_from_serial(serial, stats, &millimeter)) {
-    // 
-  }
-  else {
-    if ( pair_has_value[sensor] ) {
-      stats->overwrite += 1;
-    }
-
-    pair.val[sensor]       = millimeter;
-    pair_has_value[sensor] = true;
-
-    if ( pair_has_value[1-sensor] ) {
-
-      ring_buf.push(pair);
-
-      const int avg_range = 10;
-      int summed = ring_buf.sum_last_values(avg_range, &sum_pair);
-      if ( summed < (avg_range/2) ) {
-        sum_pair.reset();
-      }
-      
-      sprintf(jsonReply, "{\"l\":%u,\"r\":%u}"
-        , sum_pair.val[0] / avg_range
-        , sum_pair.val[1] / avg_range);
-
-      ws.textAll(jsonReply);
-      
-      pair_has_value[0] = false;
-      pair_has_value[1] = false;
-    }
-  }
-}
 
 const char* getSerialErrMsg(const hardwareSerial_error_t err) {
   const char* errStr;
@@ -194,33 +107,22 @@ const char* getSerialErrMsg(const hardwareSerial_error_t err) {
   return errStr;
 }
 
-void ser1OnReceive(void) {
-  serialOnReceive(&Serial1, 0, &(g_stats[0]));
-}
-void ser2OnReceive(void) {
-  serialOnReceive(&Serial2, 1, &(g_stats[1]));
-}
+void onSensorPairReady(ValuePair* pair) {
+  static char jsonReply[32];
 
-void ser1OnError(hardwareSerial_error_t err) {
-  Serial.printf("E: #0 - %s\n", getSerialErrMsg(err));
-}
-void ser2OnError(hardwareSerial_error_t err) {
-  Serial.printf("E: #1 - %s\n", getSerialErrMsg(err));
+  sprintf(jsonReply, "{\"l\":%u,\"r\":%u}"
+        , pair->val[0]
+        , pair->val[1] );
+
+      ws.textAll(jsonReply);
 }
 
 void setup_sensors(void) {
-  //Serial1.onReceive     (ser1OnReceive);
-  //Serial1.onReceiveError(ser1OnError);
-  //Serial2.onReceive     (ser2OnReceive);
-  //Serial2.onReceiveError(ser2OnError);
-
-  Serial1.onReceive( []() { serialOnReceive(&Serial1, 0, &(g_stats[0])); } );
-  Serial2.onReceive( []() { serialOnReceive(&Serial2, 1, &(g_stats[1])); } );
+  Serial1.onReceive( []() { serialOnReceive(&Serial1, 0, &(g_stats[0]), onSensorPairReady); } );
+  Serial2.onReceive( []() { serialOnReceive(&Serial2, 1, &(g_stats[1]), onSensorPairReady); } );
 
   Serial1.onReceiveError( [](hardwareSerial_error_t err) { Serial.printf("E: #0 - %s\n", getSerialErrMsg(err)); } );
   Serial1.onReceiveError( [](hardwareSerial_error_t err) { Serial.printf("E: #1 - %s\n", getSerialErrMsg(err)); } );
-
-
 }
 
 typedef void (pf_every_ms)(void);
