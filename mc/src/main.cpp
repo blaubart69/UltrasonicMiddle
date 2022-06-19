@@ -5,6 +5,7 @@
 #include <ESPAsyncWebServer.h>
 #include <ESPmDNS.h>
 #include <LittleFS.h>
+#include <ArduinoJson.h>
 
 #include "RingBuffer.h"
 #include "stats.h"
@@ -12,6 +13,7 @@
 
 AsyncWebServer server(80);
 AsyncWebSocket ws("/ws");
+AsyncWebSocket ws_stats("/ws/stats");
 
 void setup_filesystem(void) {
   LittleFS.begin();
@@ -23,7 +25,7 @@ void setup_filesystem(void) {
   }  
 }
 
-/*
+
 void setup_WiFi(void) {
   WiFi.begin("BabyStube", "PaulaNadja1977");
   Serial.println("Connecting to WiFi");
@@ -35,7 +37,8 @@ void setup_WiFi(void) {
   Serial.println(WiFi.localIP());
   Serial.println(WiFi.localIPv6());
 }
-*/
+
+/*
 void setup_WiFi(void) {
   // Connect to Wi-Fi network with SSID and password
   Serial.print("starting Access Point...");
@@ -46,9 +49,8 @@ void setup_WiFi(void) {
   IPAddress IP = WiFi.softAPIP();
   Serial.print("AP IP address: ");
   Serial.println(IP);
-  
-  server.begin();
 }
+*/
 
 void setup_webserver(void) {
   /*
@@ -56,6 +58,7 @@ void setup_webserver(void) {
     req->send(200, "text/html", "Servus vom MC");
   }); */
   server.addHandler(&ws);
+  server.addHandler(&ws_stats);
   server.begin();
 
   server.serveStatic("/",         LittleFS, "/").setDefaultFile("index.html");
@@ -148,16 +151,29 @@ void setup() {
   setup_sensors();
 }
 
-
+StaticJsonDocument<256> json_stats;
+String json_stats_str;
 
 void loop() {
   ws.cleanupClients();
 
   every(
-    1000,
+    2000,
     []() {
-      print_stats(g_stats, g_last_stats);	
-		  memcpy(g_last_stats, g_stats, 2 * sizeof(STATS));
+      //print_stats(g_stats, g_last_stats);	
+      
+      if ( ws_stats.count() > 0 ) {
+        json_stats.clear();
+        json_stats["data_ok"]    = g_stats[0].data_ok    - g_last_stats[0].data_ok;
+        json_stats["data_error"] = g_stats[0].data_error - g_last_stats[0].data_error;
+        json_stats["loops"]      = g_stats[0].loops      - g_last_stats[0].loops;
+        json_stats_str.clear();
+        serializeJson(json_stats, json_stats_str);
+        Serial.print(json_stats_str);
+        ws_stats.textAll(json_stats_str);
+      }
+
+      memcpy(g_last_stats, g_stats, 2 * sizeof(STATS));
     } 
   );
 

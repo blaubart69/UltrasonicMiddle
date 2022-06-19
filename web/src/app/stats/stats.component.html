@@ -1,0 +1,15 @@
+<div class="d-flex align-items-center justify-content-center">
+    <table class="table table-sm table-bordered w-auto" style="font-family: monospace">
+        <thead>
+            <th scope="col" >ok</th>
+            <th scope="col" >error</th>
+            <th scope="col" >loops</th></thead>
+        <tbody *ngFor="let stat of stats$ | async">
+            <tr>
+                <td class="text-end">{{stat.data_ok}}</td>
+                <td class="text-end">{{stat.data_error}}</td>
+                <td class="text-end">{{stat.loops}}</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
