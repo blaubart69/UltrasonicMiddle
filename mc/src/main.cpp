@@ -10,6 +10,7 @@
 #include "RingBuffer.h"
 #include "stats.h"
 #include "sensor.h"
+#include "settings.h"
 
 AsyncWebServer server(80);
 AsyncWebSocket ws("/ws");
@@ -147,24 +148,13 @@ void setup_sensors(void) {
 }
 
 void setup_settings() {
-  StaticJsonDocument<512> json_doc;
-  DeserializationError json_err;
-
-  fs::File fd = LittleFS.open("/lastSettings.json");
-  if ( !fd ) {
-    Serial.println("could not open /lastSettings.json");
-  }
-  else if ( (json_err = deserializeJson(json_doc,fd)) ){
-    Serial.printf("could not parse /lastSettings.json. %s\n", json_err.c_str());
+  String err;
+  if ( !settings.load_from_file(&err) ) {
+    Serial.printf("E: load settings. %s\n", err.c_str());
   }
   else {
-    settings.avg_values   = json_doc["avg_values"];
-    settings.threshold_cm = json_doc["threshold_cm"];
-    Serial.println("settings read from /lastSettings.json");
-    Serial.printf("avg_values: %u, threshold_cm: %u\n", settings.avg_values, settings.threshold_cm);
+    Serial.printf("I: load settings ok.\n");
   }
-
-  if ( fd ) { fd.close(); }
 }
 
 typedef void (pf_every_ms)(void);
