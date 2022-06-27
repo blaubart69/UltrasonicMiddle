@@ -15,14 +15,19 @@ AsyncWebServer server(80);
 AsyncWebSocket ws("/ws");
 AsyncWebSocket ws_stats("/ws/stats");
 
+SensorSettings settings;
+
 void setup_filesystem(void) {
   LittleFS.begin();
   if ( LittleFS.exists("/index.html") ) {
-    Serial.println("I: LittleFS found /index.html");
+    Serial.println("I: found /index.html");
   }
-  else {
-    Serial.println("E: LittleFS found no /index.html");
+  else if ( LittleFS.exists("/index.html.gz") ){
+    Serial.println("I: found /index.html.gz");
   }  
+  else {
+    Serial.println("E: found no index.html.*");
+  }
 }
 
 
@@ -141,6 +146,27 @@ void setup_sensors(void) {
   Serial1.onReceiveError( [](hardwareSerial_error_t err) { Serial.printf("E: #1 - %s\n", getSerialErrMsg(err)); } );
 }
 
+void setup_settings() {
+  StaticJsonDocument<512> json_doc;
+  DeserializationError json_err;
+
+  fs::File fd = LittleFS.open("/lastSettings.json");
+  if ( !fd ) {
+    Serial.println("could not open /lastSettings.json");
+  }
+  else if ( (json_err = deserializeJson(json_doc,fd)) ){
+    Serial.printf("could not parse /lastSettings.json. %s\n", json_err.c_str());
+  }
+  else {
+    settings.avg_values   = json_doc["avg_values"];
+    settings.threshold_cm = json_doc["threshold_cm"];
+    Serial.println("settings read from /lastSettings.json");
+    Serial.printf("avg_values: %u, threshold_cm: %u\n", settings.avg_values, settings.threshold_cm);
+  }
+
+  if ( fd ) { fd.close(); }
+}
+
 typedef void (pf_every_ms)(void);
 
 void every(const unsigned int every_millis, pf_every_ms action) {
@@ -164,6 +190,7 @@ void setup() {
   setup_sensors();
   pinMode(25, OUTPUT);
   pinMode(26, OUTPUT);
+  setup_settings();
 }
 
 StaticJsonDocument<256> json_stats;
