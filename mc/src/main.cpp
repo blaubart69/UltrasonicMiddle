@@ -111,13 +111,26 @@ const char* getSerialErrMsg(const hardwareSerial_error_t err) {
 }
 
 void onSensorPairReady(ValuePair* pair) {
-  static char jsonReply[32];
 
-  sprintf(jsonReply, "{\"l\":%u,\"r\":%u}"
-        , pair->val[0]
-        , pair->val[1] );
+  const int diff = pair->val[0] - pair->val[1];
+  if ( diff > 0 ) {
+    digitalWrite(25,LOW);
+    digitalWrite(26,HIGH);
+  }
+  else {
+    digitalWrite(26,LOW);
+    digitalWrite(25,HIGH);
+  }
 
-      ws.textAll(jsonReply);
+  {
+    static char jsonReply[32];
+
+    sprintf(jsonReply, "{\"l\":%u,\"r\":%u}"
+          , pair->val[0]
+          , pair->val[1] );
+
+    ws.textAll(jsonReply);
+  }
 }
 
 void setup_sensors(void) {
@@ -149,6 +162,8 @@ void setup() {
   Serial2.begin(9600, SERIAL_8N1, 16, 17);  
   Serial1.begin(9600, SERIAL_8N1, 18, 19);
   setup_sensors();
+  pinMode(25, OUTPUT);
+  pinMode(26, OUTPUT);
 }
 
 StaticJsonDocument<256> json_stats;
