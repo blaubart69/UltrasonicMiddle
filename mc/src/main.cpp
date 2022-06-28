@@ -73,6 +73,11 @@ void setup_webserver(void) {
   //server.serveStatic("/css/",     LittleFS, "/css/");
   //server.serveStatic("/fonts/",   LittleFS, "/fonts/");
   //server.serveStatic("/scripts/", LittleFS, "/scripts/");
+  server.on("/api/settings/current", WebRequestMethod::HTTP_GET, [](AsyncWebServerRequest *req) {
+    String result;
+    settings.current(&result);
+    req->send(200, "application/json", result);
+  });
 }
 
 void setup_mDNS(void) {

@@ -17,13 +17,12 @@ bool SensorSettings::load_from_file(String* err)
         *err += FILENAME;
     }
     else if ( (json_err = deserializeJson(json_doc,fd)) ){
-        *err = "could not parse /lastSettings.json. ";
+        *err = "could not parse " + FILENAME + ". ";
         *err += json_err.c_str();
     }
     else {
         this->avg_values   = json_doc["avg_values"];
         this->threshold_cm = json_doc["threshold_cm"];
-        
     }
 
     if ( fd ) { fd.close(); }
@@ -41,7 +40,7 @@ bool SensorSettings::save_to_file(String* err)
 
     fs::File fd = LittleFS.open(FILENAME, "w");
     if ( !fd ) {
-        *err = "could no open ";
+        *err = "could not open ";
         *err += FILENAME;
     }
     else if ( (bytesWritten = serializeJson(json_doc,fd)) == 0 ) {
@@ -52,4 +51,17 @@ bool SensorSettings::save_to_file(String* err)
     }
 
     if ( fd ) { fd.close(); }
+}
+
+bool SensorSettings::current(String* json)
+{
+    StaticJsonDocument<512> json_doc;
+    size_t bytesWritten;
+
+    json_doc["avg_values"]   = this->avg_values;
+    json_doc["threshold_cm"] = this->threshold_cm;
+
+    serializeJson(json_doc, json);
+
+    return true;
 }

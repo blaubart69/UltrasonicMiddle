@@ -9,4 +9,5 @@ public:
 
     bool load_from_file(String* err);
     bool save_to_file(String* err);
+    bool current(String* json);
 };
