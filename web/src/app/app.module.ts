@@ -7,6 +7,7 @@ import { LogComponent } from './log/log.component';
 import { SettingsComponent } from './settings/settings.component';
 import { AppRoutingModule } from './app-routing.module';
 import { StatsComponent } from './stats/stats.component';
+import { ReactiveFormsModule } from '@angular/forms';
 
 @NgModule({
   declarations: [
@@ -18,7 +19,8 @@ import { StatsComponent } from './stats/stats.component';
   ],
   imports: [
     BrowserModule,
-    AppRoutingModule
+    AppRoutingModule,
+    ReactiveFormsModule
   ],
   providers: [],
   bootstrap: [AppComponent]
