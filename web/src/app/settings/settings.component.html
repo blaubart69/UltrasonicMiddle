@@ -1,9 +1,18 @@
-<form [formGroup]="settingsForm">
+<div class="container">
+  <form [formGroup]="settingsForm" class="row" (ngSubmit)="onSubmit()">
 
-    <label for="first-name">First Name: </label>
-    <input id="first-name" type="text" formControlName="firstName">
-  
-    <label for="last-name">Last Name: </label>
-    <input id="last-name" type="text" formControlName="lastName">
-  
+      <div class="mb-3 col-sm-12">
+        <label for="avgCountValues" class="form-label">Werte Durchschnitt</label>
+        <input id="avgCountValues" class="form-control" type="number" formControlName="avgCountValues">
+      </div>
+    
+      <div class="mb-3 col-sm-12">
+        <label for="thresholdCm" class="form-label">Schwellwert (cm)</label>
+        <input id="thresholdCm" class="form-control" type="number" formControlName="thresholdCm">
+      </div>
+    
+      <div class="mb-3 col-sm-12">
+        <input type="submit" class="btn btn-primary" value="Submit"/>
+      </div>
   </form>
+</div>
