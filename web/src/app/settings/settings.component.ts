@@ -25,7 +25,10 @@ export class SettingsComponent implements OnInit {
       const headers = { 'content-type': 'application/json'}
       const body = JSON.stringify( this.settingsForm.value );
       console.log(body);
-      this.httpClient.post<any>('http://localhost:4200/api/settings', body, { 'headers' : headers })
-        .subscribe()
+
+      const url = new URL('/api/settings', window.location.href);
+
+      this.httpClient.post<any>(url.href, body, { 'headers' : headers })
+        .subscribe();
   }
 }

@@ -18,6 +18,8 @@ AsyncWebSocket ws_stats("/ws/stats");
 
 SensorSettings settings;
 
+const char* APPLICATION_JSON = "application/json";
+
 void setup_filesystem(void) {
   LittleFS.begin();
   if ( LittleFS.exists("/index.html") ) {
@@ -30,7 +32,6 @@ void setup_filesystem(void) {
     Serial.println("E: found no index.html.*");
   }
 }
-
 
 void setup_WiFi(void) {
   WiFi.begin("BabyStube", "PaulaNadja1977");
@@ -73,11 +74,44 @@ void setup_webserver(void) {
   //server.serveStatic("/css/",     LittleFS, "/css/");
   //server.serveStatic("/fonts/",   LittleFS, "/fonts/");
   //server.serveStatic("/scripts/", LittleFS, "/scripts/");
-  server.on("/api/settings/current", WebRequestMethod::HTTP_GET, [](AsyncWebServerRequest *req) {
+  
+  server.on("/api/settings", WebRequestMethod::HTTP_GET, [](AsyncWebServerRequest *req) {
     String result;
     settings.current(&result);
-    req->send(200, "application/json", result);
+    req->send(200, APPLICATION_JSON, result);
   });
+
+  server.on("/api/settings", WebRequestMethod::HTTP_POST
+    , [](AsyncWebServerRequest *req) {}    
+    , NULL                                 
+    , [](AsyncWebServerRequest *req, uint8_t *data, size_t len, size_t index, size_t total)
+      {
+        Serial.printf("I: /api/settings (POST) len: %zu, index: %zu, total: %zu\n", len, index, total);
+
+        StaticJsonDocument<512> json_doc;
+        DeserializationError json_err = deserializeJson(json_doc, data, len);
+        if ( json_err ) {
+          json_doc.clear();
+          json_doc["rc"] = String("could not parse JSON input. err: ") + json_err.c_str();
+
+          Serial.println(json_doc["rc"].as<const char*>());
+          String reply;
+          serializeJson(json_doc, reply);
+          req->send(400, APPLICATION_JSON, reply);
+        }
+        else {
+          settings.avg_values   = json_doc["avg_values"]  .as<int>();
+          settings.threshold_cm = json_doc["threshold_cm"].as<int>();
+          String err;
+          if ( !settings.save_to_file(&err) ) {
+            Serial.println("E: saving settings");
+          }
+          else {
+            req->send(200, APPLICATION_JSON, "{\"rc\":\"ok\"}");
+          }
+        }
+      });
+
 }
 
 void setup_mDNS(void) {

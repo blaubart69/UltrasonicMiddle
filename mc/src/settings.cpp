@@ -32,6 +32,7 @@ bool SensorSettings::load_from_file(String* err)
 
 bool SensorSettings::save_to_file(String* err)
 {
+    err->clear();
     StaticJsonDocument<512> json_doc;
     size_t bytesWritten;
 
@@ -51,6 +52,8 @@ bool SensorSettings::save_to_file(String* err)
     }
 
     if ( fd ) { fd.close(); }
+
+    return err->isEmpty();
 }
 
 bool SensorSettings::current(String* json)
@@ -61,7 +64,7 @@ bool SensorSettings::current(String* json)
     json_doc["avg_values"]   = this->avg_values;
     json_doc["threshold_cm"] = this->threshold_cm;
 
-    serializeJson(json_doc, json);
+    serializeJson(json_doc, *json);
 
     return true;
 }
