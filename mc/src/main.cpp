@@ -100,7 +100,7 @@ void setup_webserver(void) {
           req->send(400, APPLICATION_JSON, reply);
         }
         else {
-          settings.avg_values   = json_doc["avg_values"]  .as<int>();
+          settings.set_avg_values( json_doc["avg_values"].as<int>() );
           settings.threshold_cm = json_doc["threshold_cm"].as<int>();
           String err;
           if ( !settings.save_to_file(&err) ) {
@@ -157,30 +157,33 @@ const char* getSerialErrMsg(const hardwareSerial_error_t err) {
 
 void onSensorPairReady(ValuePair* pair) {
 
-  const int diff = pair->val[0] - pair->val[1];
-  if ( diff > 0 ) {
-    digitalWrite(25,LOW);
-    digitalWrite(26,HIGH);
-  }
-  else {
-    digitalWrite(26,LOW);
-    digitalWrite(25,HIGH);
+  const int diff_cm = ( pair->val[0] - pair->val[1] ) / 10;
+
+  if ( std::abs(diff_cm) >= settings.threshold_cm ) {
+    if ( diff_cm > 0 ) {
+      digitalWrite(25,LOW);
+      digitalWrite(26,HIGH);
+    }
+    else {
+      digitalWrite(26,LOW);
+      digitalWrite(25,HIGH);
+    }
   }
 
   {
     static char jsonReply[32];
 
     sprintf(jsonReply, "{\"l\":%u,\"r\":%u}"
-          , pair->val[0]
-          , pair->val[1] );
+          , pair->val[0] / 10
+          , pair->val[1] / 10 );
 
     ws.textAll(jsonReply);
   }
 }
 
 void setup_sensors(void) {
-  Serial1.onReceive( []() { serialOnReceive(&Serial1, 0, &(g_stats[0]), onSensorPairReady); } );
-  Serial2.onReceive( []() { serialOnReceive(&Serial2, 1, &(g_stats[1]), onSensorPairReady); } );
+  Serial1.onReceive( []() { serialOnReceive(&Serial1, 0, settings.get_avg_values(), &(g_stats[0]), onSensorPairReady); } );
+  Serial2.onReceive( []() { serialOnReceive(&Serial2, 1, settings.get_avg_values(), &(g_stats[1]), onSensorPairReady); } );
 
   Serial1.onReceiveError( [](hardwareSerial_error_t err) { Serial.printf("E: #0 - %s\n", getSerialErrMsg(err)); } );
   Serial1.onReceiveError( [](hardwareSerial_error_t err) { Serial.printf("E: #1 - %s\n", getSerialErrMsg(err)); } );

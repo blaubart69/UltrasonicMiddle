@@ -47,7 +47,7 @@ static ValuePair   pair;
 static ValuePair   pair_summed;
 static RingBuffer  ring_buf;
 
-void serialOnReceive(Stream* serial, const int sensor, STATS* stats, std::function<void(ValuePair*)> onPairReady) {
+void serialOnReceive(Stream* serial, const int sensor, const int avg_range, STATS* stats, std::function<void(ValuePair*)> onPairReady) {
   
   unsigned int millimeter;
 
@@ -66,7 +66,7 @@ void serialOnReceive(Stream* serial, const int sensor, STATS* stats, std::functi
 
       ring_buf.push(pair);
 
-      const int avg_range = 10;
+      //const int avg_range = 10;
       const int summed_pairs = ring_buf.sum_last_values(avg_range, &pair_summed);
       if ( summed_pairs < (avg_range/2) ) {
         pair_summed.reset();

@@ -17,13 +17,33 @@ export class SettingsComponent implements OnInit {
 
   constructor(private httpClient: HttpClient) { }
 
-  ngOnInit(): void {
-  }
+    ngOnInit(): void {
+      this.httpClient.get<any>( 
+        new URL('/api/settings', window.location.href).href
+        , { observe : "body", responseType: "json" } )
+      .subscribe({
+        next : (data) => {
+          console.log("data: " + data);
+          this.settingsForm.setValue({ 
+              "avgCountValues" : data.avg_values
+            , "thresholdCm"    : data.threshold_cm
+          });
+        },
+        error: (err) => { 
+          alert(err); 
+        }
+      });
+      
+    }
 
     onSubmit() {
 
       const headers = { 'content-type': 'application/json'}
-      const body = JSON.stringify( this.settingsForm.value );
+      //const body = JSON.stringify( this.settingsForm.value );
+      const body = {
+        "avg_values"   : this.settingsForm.get("avgCountValues")?.value,
+        "threshold_cm" : this.settingsForm.get("thresholdCm")?.value,
+      };
       console.log(body);
 
       const url = new URL('/api/settings', window.location.href);

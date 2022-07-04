@@ -8,4 +8,4 @@
 
 
 
-void serialOnReceive(Stream* serial, const int sensor, STATS* stats, std::function<void(ValuePair*)> onPairReady);
+void serialOnReceive(Stream* serial, const int sensor, const int avg_range, STATS* stats, std::function<void(ValuePair*)> onPairReady);

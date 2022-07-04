@@ -21,7 +21,7 @@ bool SensorSettings::load_from_file(String* err)
         *err += json_err.c_str();
     }
     else {
-        this->avg_values   = json_doc["avg_values"];
+        this->set_avg_values(json_doc["avg_values"].as<int>());
         this->threshold_cm = json_doc["threshold_cm"];
     }
 
@@ -36,7 +36,7 @@ bool SensorSettings::save_to_file(String* err)
     StaticJsonDocument<512> json_doc;
     size_t bytesWritten;
 
-    json_doc["avg_values"]   = this->avg_values;
+    json_doc["avg_values"]   = this->get_avg_values();
     json_doc["threshold_cm"] = this->threshold_cm;
 
     fs::File fd = LittleFS.open(FILENAME, "w");
@@ -61,7 +61,7 @@ bool SensorSettings::current(String* json)
     StaticJsonDocument<512> json_doc;
     size_t bytesWritten;
 
-    json_doc["avg_values"]   = this->avg_values;
+    json_doc["avg_values"]   = this->get_avg_values();
     json_doc["threshold_cm"] = this->threshold_cm;
 
     serializeJson(json_doc, *json);
