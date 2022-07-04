@@ -157,10 +157,11 @@ const char* getSerialErrMsg(const hardwareSerial_error_t err) {
 
 void onSensorPairReady(ValuePair* pair) {
 
-  const int diff_cm = ( pair->val[0] - pair->val[1] ) / 10;
+  const int diff_mm = pair->val[0] - pair->val[1];
+  const int diff_mm_abs = abs(diff_mm);
 
-  if ( std::abs(diff_cm) >= settings.threshold_cm ) {
-    if ( diff_cm > 0 ) {
+  if ( diff_mm_abs >= (settings.threshold_cm*10) ) {
+    if ( diff_mm > 0 ) {
       digitalWrite(25,LOW);
       digitalWrite(26,HIGH);
     }
@@ -169,6 +170,10 @@ void onSensorPairReady(ValuePair* pair) {
       digitalWrite(25,HIGH);
     }
   }
+  else {
+    digitalWrite(25,LOW);
+    digitalWrite(26,LOW);
+  }
 
   {
     static char jsonReply[32];
@@ -176,6 +181,8 @@ void onSensorPairReady(ValuePair* pair) {
     sprintf(jsonReply, "{\"l\":%u,\"r\":%u}"
           , pair->val[0] / 10
           , pair->val[1] / 10 );
+
+    Serial.printf("diff: %d, abs_diff: %d, %s\n", diff_mm, diff_mm_abs, jsonReply);
 
     ws.textAll(jsonReply);
   }
