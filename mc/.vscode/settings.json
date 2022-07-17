@@ -240,5 +240,13 @@
     "**/.*/**",
     "**/.vscode",
     "**/.vscode/**"
-  ]
+  ],
+  "files.associations": {
+    "*.tcc": "cpp",
+    "bitset": "cpp",
+    "functional": "cpp",
+    "array": "cpp",
+    "string": "cpp",
+    "string_view": "cpp"
+  }
 }
