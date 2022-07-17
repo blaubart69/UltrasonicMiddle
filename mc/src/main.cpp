@@ -102,8 +102,8 @@ void setup_webserver(void) {
           req->send(400, APPLICATION_JSON, reply);
         }
         else {
-          settings.set_avg_values( json_doc["avg_values"].as<int>() );
-          settings.threshold_cm = json_doc["threshold_cm"].as<int>();
+          settings.set_avg_values  ( json_doc["avg_values"]  .as<int>() );
+          settings.set_threshold_cm( json_doc["threshold_cm"].as<int>() );
           String err;
           if ( !settings.save_to_file(&err) ) {
             Serial.println("E: saving settings");
@@ -162,7 +162,7 @@ void onSensorPairReady(ValuePair* pair) {
   const int diff_mm = pair->val[0] - pair->val[1];
   const int diff_mm_abs = abs(diff_mm);
 
-  if ( diff_mm_abs >= (settings.threshold_cm*10) ) {
+  if ( diff_mm_abs >= settings.get_threshold_mm() ) {
     if ( diff_mm > 0 ) {
       digitalWrite(25,LOW);
       digitalWrite(26,HIGH);
