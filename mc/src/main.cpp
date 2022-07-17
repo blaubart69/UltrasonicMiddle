@@ -252,7 +252,7 @@ void loop() {
         json_stats["loops"]      = g_stats[0].loops      - g_last_stats[0].loops;
         json_stats_str.clear();
         serializeJson(json_stats, json_stats_str);
-        Serial.print(json_stats_str);
+        Serial.println(json_stats_str);
         ws_stats.textAll(json_stats_str);
       }
 
