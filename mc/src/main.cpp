@@ -33,6 +33,8 @@ void setup_filesystem(void) {
   }
 }
 
+#if 0
+
 void setup_WiFi(void) {
   WiFi.begin("BabyStube", "PaulaNadja1977");
   Serial.println("Connecting to WiFi");
@@ -45,19 +47,19 @@ void setup_WiFi(void) {
   Serial.println(WiFi.localIPv6());
 }
 
-/*
+#else
+
 void setup_WiFi(void) {
   // Connect to Wi-Fi network with SSID and password
   Serial.print("starting Access Point...");
   // Remove the password parameter, if you want the AP (Access Point) to be open
   WiFi.softAP("radar", "");
-  
 
   IPAddress IP = WiFi.softAPIP();
   Serial.print("AP IP address: ");
   Serial.println(IP);
 }
-*/
+#endif
 
 void setup_webserver(void) {
   /*
@@ -82,7 +84,7 @@ void setup_webserver(void) {
   });
 
   server.on("/api/settings", WebRequestMethod::HTTP_POST
-    , [](AsyncWebServerRequest *req) {}    
+    , [](AsyncWebServerRequest *req) { }    
     , NULL                                 
     , [](AsyncWebServerRequest *req, uint8_t *data, size_t len, size_t index, size_t total)
       {
