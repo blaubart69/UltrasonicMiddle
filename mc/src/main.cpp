@@ -73,6 +73,7 @@ void setup_webserver(void) {
   server.serveStatic("/",         LittleFS, "/").setDefaultFile("index.html");
   server.serveStatic("/log",      LittleFS, "/").setDefaultFile("index.html");
   server.serveStatic("/settings", LittleFS, "/").setDefaultFile("index.html");
+  server.serveStatic("/stats",    LittleFS, "/").setDefaultFile("index.html");
   //server.serveStatic("/css/",     LittleFS, "/css/");
   //server.serveStatic("/fonts/",   LittleFS, "/fonts/");
   //server.serveStatic("/scripts/", LittleFS, "/scripts/");
@@ -144,31 +145,32 @@ void print_stats(const STATS stats[], const STATS last_stats[]) {
 
 void json_stats(const STATS stats[], const STATS last_stats[], String* json_str) {
   static StaticJsonDocument<512> json_stats;
+  json_stats["data_ok"]   [0]  = stats[0].data_ok    - last_stats[0].data_ok;
+  json_stats["data_ok"]   [1]  = stats[1].data_ok    - last_stats[1].data_ok;
+  json_stats["data_error"][0]  = stats[0].data_error - last_stats[0].data_error;
+  json_stats["data_error"][1]  = stats[1].data_error - last_stats[1].data_error;
 
-  json_stats["data_ok"]   [0]  = g_stats[0].data_ok    - g_last_stats[0].data_ok;
-  json_stats["data_ok"]   [1]  = g_stats[1].data_ok    - g_last_stats[1].data_ok;
-  json_stats["data_error"][0]  = g_stats[0].data_error - g_last_stats[0].data_error;
-  json_stats["data_error"][1]  = g_stats[1].data_error - g_last_stats[1].data_error;
+  json_stats["gap_ms"]    [0]  = stats[0].gap_ms     - last_stats[0].gap_ms;
+  json_stats["gap_ms"]    [1]  = stats[1].gap_ms     - last_stats[1].gap_ms;
 
-  json_stats["avail0"]    [0]  = g_stats[0].avail0;
-  json_stats["avail0"]    [1]  = g_stats[1].avail0;
-
-  json_stats["less4"]     [0]  = g_stats[0].less4;
-  json_stats["less4"]     [1]  = g_stats[1].less4;
-
-  json_stats["ne"]        [0]  = g_stats[0].ne;
-  json_stats["ne"]        [1]  = g_stats[1].ne;
-
-  json_stats["overwrite"] [0]  = g_stats[0].overwrite;
-  json_stats["overwrite"] [1]  = g_stats[1].overwrite;
-
-  json_stats["notFF"]     [0]  = g_stats[0].notFF;
-  json_stats["notFF"]     [1]  = g_stats[1].notFF;
-
-
-  json_stats["moreData"]  [0]  = g_stats[0].moreData;
-  json_stats["moreData"]  [1]  = g_stats[1].moreData;
-
+  json_stats["avail0"]    [0]  = stats[0].avail0;
+  json_stats["avail0"]    [1]  = stats[1].avail0;
+  
+  json_stats["less4"]     [0]  = stats[0].less4;
+  json_stats["less4"]     [1]  = stats[1].less4;
+  
+  json_stats["ne"]        [0]  = stats[0].ne;
+  json_stats["ne"]        [1]  = stats[1].ne;
+  
+  json_stats["overwrite"] [0]  = stats[0].overwrite;
+  json_stats["overwrite"] [1]  = stats[1].overwrite;
+  
+  json_stats["notFF"]     [0]  = stats[0].notFF;
+  json_stats["notFF"]     [1]  = stats[1].notFF;
+  
+  json_stats["moreData"]  [0]  = stats[0].moreData;
+  json_stats["moreData"]  [1]  = stats[1].moreData;
+  
   json_stats["loops"]       = g_stats[0].loops      - g_last_stats[0].loops;
   
   json_str->clear();

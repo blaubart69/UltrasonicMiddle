@@ -10,4 +10,5 @@ typedef struct {
   	unsigned long overwrite;
   	unsigned long loops;
 	unsigned long moreData;
+	unsigned long gap_ms;
 } STATS;

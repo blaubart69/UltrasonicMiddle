@@ -1,4 +1,5 @@
 #include <functional>
+#include <Arduino.h>
 
 #include "sensor.h"
 #include "stats.h"
@@ -47,9 +48,16 @@ bool          pair_has_value[2] = {false, false};
 static ValuePair   pair;
 static ValuePair   pair_summed;
 static RingBuffer  ring_buf;
+static unsigned long last_millis = 0;
 
 void serialOnReceive(Stream* serial, const int sensor, const int avg_range, STATS* stats, std::function<void(ValuePair*)> onPairReady) {
   
+  const unsigned long curr_millis = millis();
+  if ( last_millis != 0) {
+    stats->gap_ms += (curr_millis - last_millis);
+  }
+  last_millis = curr_millis;
+
   unsigned int millimeter;
 
   if (!read_millimeter_from_serial(serial, stats, &millimeter)) {

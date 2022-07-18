@@ -62,7 +62,7 @@ bool SensorSettings::current(String* json)
     size_t bytesWritten;
 
     json_doc["avg_values"]   = this->get_avg_values();
-    json_doc["threshold_cm"] = this->threshold_mm * 10;
+    json_doc["threshold_cm"] = this->get_threshold_cm();
 
     serializeJson(json_doc, *json);
 
@@ -83,7 +83,7 @@ void SensorSettings::set_avg_values(const int val) {
 }
 
 int  SensorSettings::get_threshold_cm() const {
-    return this->threshold_mm * 10;
+    return this->threshold_mm / 10;
 }
 
 int  SensorSettings::get_threshold_mm() const {
