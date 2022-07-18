@@ -1,14 +1,27 @@
 <div class="d-flex align-items-center justify-content-center">
     <table class="table table-sm table-bordered w-auto" style="font-family: monospace">
         <thead>
-            <th scope="col" >ok</th>
-            <th scope="col" >error</th>
-            <th scope="col" >loops</th></thead>
+            <th scope="col">ok</th>
+            <th scope="col">error</th>
+            <th scope="col">loops</th>
+            <th scope="col">avail0</th>
+            <th scope="col">less4</th>
+            <th scope="col">ne</th>
+            <th scope="col">overwrite</th>
+            <th scope="col">notFF</th>
+            <th scope="col">moreData</th>
+        </thead>
         <tbody *ngFor="let stat of stats$ | async">
             <tr>
                 <td class="text-end">{{stat.data_ok}}</td>
                 <td class="text-end">{{stat.data_error}}</td>
                 <td class="text-end">{{stat.loops}}</td>
+                <td class="text-end">{{stat.avail0}}</td>
+                <td class="text-end">{{stat.less4}}</td>
+                <td class="text-end">{{stat.ne}}</td>
+                <td class="text-end">{{stat.overwrite}}</td>
+                <td class="text-end">{{stat.notFF}}</td>
+                <td class="text-end">{{stat.moreData}}</td>
             </tr>
         </tbody>
     </table>

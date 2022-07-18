@@ -7,6 +7,7 @@ typedef struct {
 	unsigned long less4;
 	unsigned long ne;
 	unsigned long notFF;
-  unsigned long overwrite;
-  unsigned long loops;
+  	unsigned long overwrite;
+  	unsigned long loops;
+	unsigned long moreData;
 } STATS;

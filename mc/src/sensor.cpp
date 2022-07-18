@@ -33,9 +33,10 @@ static bool read_millimeter_from_serial(Stream* serial, STATS* stats, unsigned i
     else {
       stats->data_ok += 1;
 		  *millimeter = ( data[1] << 8 ) + data[2];
+
+      stats->moreData += serial->available();
+
       return true;
-      //sprintf(jsonReply, "{\"l\":%u,\"r\":0}", millimeter);
-      //ws.textAll(jsonReply);
     }
   }
   return false;
@@ -65,8 +66,7 @@ void serialOnReceive(Stream* serial, const int sensor, const int avg_range, STAT
     if ( pair_has_value[1-sensor] ) {
 
       ring_buf.push(pair);
-
-      //const int avg_range = 10;
+      
       const int summed_pairs = ring_buf.sum_last_values(avg_range, &pair_summed);
       if ( summed_pairs < (avg_range/2) ) {
         pair_summed.reset();

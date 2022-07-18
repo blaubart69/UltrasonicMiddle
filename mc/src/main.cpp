@@ -33,7 +33,7 @@ void setup_filesystem(void) {
   }
 }
 
-#if 0
+#if 1
 
 void setup_WiFi(void) {
   WiFi.begin("BabyStube", "PaulaNadja1977");
@@ -130,7 +130,7 @@ STATS g_last_stats[2];
 
 void print_stats(const STATS stats[], const STATS last_stats[]) {
 
-	Serial.printf("[avail0: %5lu|%5lu] [ok: %2lu|%2lu] [err: %2lu|%2lu] [less4: %5lu|%5lu] [ne: %5lu|%5lu] [notFF: %5lu|%5lu] [overwrite: %2lu|%2lu] [loops: %5lu]\n",
+	Serial.printf("[avail0: %5lu|%5lu] [ok: %2lu|%2lu] [err: %2lu|%2lu] [less4: %5lu|%5lu] [ne: %5lu|%5lu] [notFF: %5lu|%5lu] [overwrite: %2lu|%2lu] [moreData: %5lu|%5lu]\n",
 		stats[0].avail0      - last_stats[0].avail0,        stats[1].avail0      - last_stats[1].avail0,
 		stats[0].data_ok     - last_stats[0].data_ok,       stats[1].data_ok     - last_stats[1].data_ok, 
 		stats[0].data_error  - last_stats[0].data_error,    stats[1].data_error  - last_stats[1].data_error,
@@ -138,8 +138,41 @@ void print_stats(const STATS stats[], const STATS last_stats[]) {
 		stats[0].ne          - last_stats[0].ne,            stats[1].ne          - last_stats[1].ne,
 		stats[0].notFF	     - last_stats[0].notFF,         stats[1].notFF	     - last_stats[1].notFF,
     stats[0].overwrite,                                 stats[1].overwrite,
-    stats[0].loops       - last_stats[0].loops
+    stats[0].moreData    - last_stats[0].moreData,      stats[1].moreData    - last_stats[1].moreData   
   );
+}
+
+void json_stats(const STATS stats[], const STATS last_stats[], String* json_str) {
+  static StaticJsonDocument<512> json_stats;
+
+  json_stats["data_ok"]   [0]  = g_stats[0].data_ok    - g_last_stats[0].data_ok;
+  json_stats["data_ok"]   [1]  = g_stats[1].data_ok    - g_last_stats[1].data_ok;
+  json_stats["data_error"][0]  = g_stats[0].data_error - g_last_stats[0].data_error;
+  json_stats["data_error"][1]  = g_stats[1].data_error - g_last_stats[1].data_error;
+
+  json_stats["avail0"]    [0]  = g_stats[0].avail0;
+  json_stats["avail0"]    [1]  = g_stats[1].avail0;
+
+  json_stats["less4"]     [0]  = g_stats[0].less4;
+  json_stats["less4"]     [1]  = g_stats[1].less4;
+
+  json_stats["ne"]        [0]  = g_stats[0].ne;
+  json_stats["ne"]        [1]  = g_stats[1].ne;
+
+  json_stats["overwrite"] [0]  = g_stats[0].overwrite;
+  json_stats["overwrite"] [1]  = g_stats[1].overwrite;
+
+  json_stats["notFF"]     [0]  = g_stats[0].notFF;
+  json_stats["notFF"]     [1]  = g_stats[1].notFF;
+
+
+  json_stats["moreData"]  [0]  = g_stats[0].moreData;
+  json_stats["moreData"]  [1]  = g_stats[1].moreData;
+
+  json_stats["loops"]       = g_stats[0].loops      - g_last_stats[0].loops;
+  
+  json_str->clear();
+  serializeJson(json_stats, *json_str);
 }
 
 
@@ -184,7 +217,7 @@ void onSensorPairReady(ValuePair* pair) {
           , pair->val[0] / 10
           , pair->val[1] / 10 );
 
-    Serial.printf("diff: %d, abs_diff: %d, %s\n", diff_mm, diff_mm_abs, jsonReply);
+    //Serial.printf("diff: %d, abs_diff: %d, %s\n", diff_mm, diff_mm_abs, jsonReply);
 
     ws.textAll(jsonReply);
   }
@@ -234,7 +267,7 @@ void setup() {
   setup_settings();
 }
 
-StaticJsonDocument<256> json_stats;
+
 String json_stats_str;
 
 void loop() {
@@ -246,12 +279,7 @@ void loop() {
       //print_stats(g_stats, g_last_stats);	
       
       if ( ws_stats.count() > 0 ) {
-        json_stats.clear();
-        json_stats["data_ok"]    = g_stats[0].data_ok    - g_last_stats[0].data_ok;
-        json_stats["data_error"] = g_stats[0].data_error - g_last_stats[0].data_error;
-        json_stats["loops"]      = g_stats[0].loops      - g_last_stats[0].loops;
-        json_stats_str.clear();
-        serializeJson(json_stats, json_stats_str);
+        json_stats(g_stats, g_last_stats, &json_stats_str);
         Serial.println(json_stats_str);
         ws_stats.textAll(json_stats_str);
       }
